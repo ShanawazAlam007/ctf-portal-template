@@ -1,8 +1,33 @@
 # CTF Portal Template
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue?logo=python" alt="Python Version" />
+  <img src="https://img.shields.io/badge/Framework-Flask%203.0-lightgrey?logo=flask" alt="Flask" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL%20%2F%20SQLite-blue?logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Container-Docker%20Compose-2496ED?logo=docker" alt="Docker" />
+  <img src="https://img.shields.io/badge/Security-Argon2id%20%7C%20RateLimited-red?logo=shield" alt="Security" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
+</p>
+
 A generic, production-ready, highly configurable Capture The Flag (CTF) portal template built with Flask, SQLAlchemy, TailwindCSS, PostgreSQL, and Docker.
 
 Designed to be cloned, customized, and deployed for any academic, corporate, or community security competition in minutes without modifying backend code.
+
+---
+
+## Interface Preview & Gallery
+
+| Landing Page | Live Leaderboard |
+| :---: | :---: |
+| ![Landing Page](docs/screenshots/01_landing_page.png) | ![Leaderboard](docs/screenshots/06_leaderboard.png) |
+
+| Operative Dashboard | Challenges Grid |
+| :---: | :---: |
+| ![Player Dashboard](docs/screenshots/03_player_dashboard.png) | ![Challenges Hub](docs/screenshots/04_challenges_hub.png) |
+
+| Mission Dossier & Clue Unlock | Admin Command Center |
+| :---: | :---: |
+| ![Mission Dossier](docs/screenshots/05_mission_dossier.png) | ![Admin Dashboard](docs/screenshots/07_admin_command_center.png) |
 
 ---
 
