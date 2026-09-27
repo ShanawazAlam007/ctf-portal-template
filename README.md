@@ -15,19 +15,56 @@ Designed to be cloned, customized, and deployed for any academic, corporate, or 
 
 ---
 
-## Interface Preview & Gallery
+## Interface Preview & Screenshots
 
-| Landing Page | Live Leaderboard |
-| :---: | :---: |
-| ![Landing Page](docs/screenshots/01_landing_page.png) | ![Leaderboard](docs/screenshots/06_leaderboard.png) |
+Explore the portal's user interfaces, competitive views, and administrative control center.
 
-| Operative Dashboard | Challenges Grid |
-| :---: | :---: |
-| ![Player Dashboard](docs/screenshots/03_player_dashboard.png) | ![Challenges Hub](docs/screenshots/04_challenges_hub.png) |
+### 1. Landing Page & Operations Hub
+The dynamic public hero page displays competition branding, live server telemetry, security status badges, and quick links to event guidelines.
 
-| Mission Dossier & Clue Unlock | Admin Command Center |
-| :---: | :---: |
-| ![Mission Dossier](docs/screenshots/05_mission_dossier.png) | ![Admin Dashboard](docs/screenshots/07_admin_command_center.png) |
+![Landing Page & Operations Hub](docs/screenshots/01_landing_page.png)
+
+---
+
+### 2. Operative Authentication & Access Gateway
+Secure participant sign-in interface featuring built-in bruteforce mitigation, IP-based rate limiting, and domain-restricted enrollment prompts.
+
+![Operative Authentication & Access Gateway](docs/screenshots/02_login_screen.png)
+
+---
+
+### 3. Operative Mission Dashboard
+The competitor command dashboard provides live feedback on overall tournament progress, current user rank, total flags captured, and recent submission logs.
+
+![Operative Mission Dashboard](docs/screenshots/03_player_dashboard.png)
+
+---
+
+### 4. Challenges Hub & Progression Matrix
+Dynamic challenge grid with category filtering, point values, difficulty badges, and sequential stage progression locks (locking higher stages until prior levels are cleared).
+
+![Challenges Hub & Progression Matrix](docs/screenshots/04_challenges_hub.png)
+
+---
+
+### 5. Mission Dossier & Flag Submission Terminal
+Detailed challenge view supporting full Markdown scenario briefings, target connection coordinates (HTTP/SSH/RDP), hint unlocking with point penalties, and instant flag validation.
+
+![Mission Dossier & Flag Submission Terminal](docs/screenshots/05_mission_dossier.png)
+
+---
+
+### 6. Real-Time Tournament Standings (12-Hour IST)
+Live competitive leaderboard tracking approved participant rankings, total scores (factoring in hint deductions), earliest solve tie-breaker logic, and timestamps formatted in 12-hour IST.
+
+![Real-Time Tournament Standings](docs/screenshots/06_leaderboard.png)
+
+---
+
+### 7. Administrative Command Center & Challenge Management
+Complete administrative control panel allowing event organizers to create, edit, and delete challenges, manage multiple flags and hints, approve or reject participants, view live submission telemetry, and export results to CSV.
+
+![Administrative Command Center](docs/screenshots/07_admin_command_center.png)
 
 ---
 
