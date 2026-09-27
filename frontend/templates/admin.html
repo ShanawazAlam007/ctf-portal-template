@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Admin Hero Header -->
+    <div class="section-header text-left mb-4 d-flex justify-between align-center flex-wrap gap-3">
+        <div>
+            <span class="section-subtitle">DIRECTOR & CONTROL ROOM</span>
+            <h1 class="section-title">ADMINISTRATIVE <span class="accent-cyan">CONSOLE</span></h1>
+            <p class="section-desc">Manage tournament challenges, configure flags, approve participants, and monitor submissions telemetry.</p>
+        </div>
+        <div class="admin-export-tools d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('export_leaderboard') }}" class="btn btn-sm btn-outline-cyan">
+                <i class="fas fa-file-csv"></i> Export Leaderboard
+            </a>
+            <a href="{{ url_for('export_submissions') }}" class="btn btn-sm btn-outline-cyan">
+                <i class="fas fa-list-check"></i> Export Submissions
+            </a>
+            <a href="{{ url_for('export_users') }}" class="btn btn-sm btn-outline-cyan">
+                <i class="fas fa-users"></i> Export Users
+            </a>
+            <form action="{{ url_for('admin_reset_scores') }}" method="POST" style="display:inline;" onsubmit="return confirm('CRITICAL: Reset all submissions and zero the tournament leaderboard? Challenge configurations will be preserved.');">
+                <button type="submit" class="btn btn-sm btn-danger-ghost" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+                    <i class="fas fa-rotate-left"></i> Reset Scores
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Telemetry Statistics Grid -->
+    <div class="grid grid-4 mb-4">
+        <div class="cyber-card stat-card-admin">
+            <div class="stat-num text-cyan">{{ total_users }}</div>
+            <div class="stat-label">Total Registered</div>
+            <small class="text-muted">{{ verified_users }} Approved / {{ pending_users|length }} Pending</small>
+        </div>
+        <div class="cyber-card stat-card-admin">
+            <div class="stat-num text-emerald">{{ correct_submissions }}</div>
+            <div class="stat-label">Correct Flag Solves</div>
+            <small class="text-muted">{{ total_submissions }} Total Submissions</small>
+        </div>
+        <div class="cyber-card stat-card-admin">
+            <div class="stat-num text-amber">{{ challenges|length }}</div>
+            <div class="stat-label">Challenge Tracks</div>
+            <small class="text-muted">{{ total_flags_count }} Total Flags Deployed</small>
+        </div>
+        <div class="cyber-card stat-card-admin">
+            <div class="stat-num text-purple">{{ pending_users|length }}</div>
+            <div class="stat-label">Awaiting Verification</div>
+            <small class="text-muted">Requires Admin Approval</small>
+        </div>
+    </div>
+
+    <!-- Pending Enrollment Approvals -->
+    <div class="cyber-card mb-4" style="border: 1px solid rgba(245, 158, 11, 0.4);">
+        <div class="card-title-bar d-flex justify-between align-center">
+            <h3><i class="fas fa-user-clock text-amber"></i> PENDING ENROLLMENT APPROVALS</h3>
+            <span class="badge-status badge-warning">{{ pending_users|length }} Pending Action</span>
+        </div>
+
+        {% if pending_users %}
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Student Full Name</th>
+                            <th>Email Address</th>
+                            <th>Requested Role</th>
+                            <th>Registered Time (IST)</th>
+                            <th class="text-right">Approval Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in pending_users %}
+                            <tr>
+                                <td><strong class="text-white">{{ u.name }}</strong></td>
+                                <td class="font-mono text-cyan">{{ u.email }}</td>
+                                <td>
+                                    {% if u.role == 'admin' %}
+                                        <span class="badge-status badge-danger font-mono" style="font-size: 0.78rem; padding: 4px 8px; border: 1px solid rgba(239, 68, 68, 0.4);">
+                                            <i class="fas fa-shield-halved"></i> ADMIN
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-status badge-info font-mono" style="font-size: 0.78rem; padding: 4px 8px;">
+                                            <i class="fas fa-user-ninja"></i> PLAYER
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-mono text-muted small">{{ u.created_at|ist('%Y-%m-%d %I:%M:%S %p') }}</td>
+                                <td class="text-right">
+                                    <div class="d-flex justify-end gap-2" style="justify-content: flex-end;">
+                                        <form action="{{ url_for('admin_approve_user', user_id=u.id) }}" method="POST" style="display:inline;">
+                                            <input type="hidden" name="role" value="{{ u.role }}">
+                                            <button type="submit" class="btn btn-sm {% if u.role == 'admin' %}btn-outline-danger{% else %}btn-cyan{% endif %} font-bold" style="padding: 6px 14px;">
+                                                <i class="fas fa-check"></i> Approve as {{ u.role|upper }}
+                                            </button>
+                                        </form>
+                                        <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('PERMANENTLY DELETE registration for {{ u.name }} ({{ u.email }})?');">
+                                            <button type="submit" class="btn btn-sm btn-danger-ghost" style="padding: 6px 12px; color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+                                                <i class="fas fa-trash-can"></i> Delete Profile
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-4 text-center">
+                <i class="fas fa-circle-check text-success fa-2x mb-2"></i>
+                <p class="text-muted mb-0">No pending student enrollments. All registered accounts are approved and verified.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Challenge Missions Management & Creator Form -->
+    <div class="cyber-card mb-4">
+        <div class="card-title-bar d-flex justify-between align-center flex-wrap gap-2">
+            <h3><i class="fas fa-sliders accent-cyan"></i> CHALLENGE MISSIONS MANAGEMENT</h3>
+            <button class="btn btn-sm btn-cyan font-bold" onclick="toggleElement('createChallengeForm')">
+                <i class="fas fa-plus"></i> Create New Challenge
+            </button>
+        </div>
+
+        <!-- Embedded Challenge Creator Form (Hidden by default) -->
+        <div id="createChallengeForm" style="display: none; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(6, 182, 212, 0.35); border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+            <h4 class="mb-3 text-cyan"><i class="fas fa-file-circle-plus"></i> Deploy New Challenge</h4>
+            <form action="{{ url_for('admin_create_challenge') }}" method="POST" class="cyber-form">
+                <div class="grid grid-2 gap-3 mb-3">
+                    <div class="form-group">
+                        <label>Challenge Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Memory Breach" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Unique Slug * (URL Identifier)</label>
+                        <input type="text" name="slug" class="form-control font-mono" placeholder="e.g. memory-breach" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-3 gap-3 mb-3">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <input type="text" name="category" class="form-control" placeholder="e.g. Forensics / Web / Binary" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Difficulty</label>
+                        <select name="difficulty" class="form-control" style="background-color: var(--bg-card); color: #fff;">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Points Awarded</label>
+                        <input type="number" name="points" class="form-control" value="100" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-3 gap-3 mb-3">
+                    <div class="form-group">
+                        <label>Service Type</label>
+                        <input type="text" name="target_type" class="form-control" value="HTTP" placeholder="HTTP / SSH / RDP">
+                    </div>
+                    <div class="form-group">
+                        <label>Connection Target (Host / Port / URL)</label>
+                        <input type="text" name="target_info" class="form-control font-mono" placeholder="e.g. https://target.internal or 192.168.1.50:8080">
+                    </div>
+                    <div class="form-group">
+                        <label>Display Order (Stage #)</label>
+                        <input type="number" name="display_order" class="form-control" value="{{ challenges|length + 1 }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Short Description (Overview Summary)</label>
+                    <input type="text" name="short_desc" class="form-control" placeholder="Brief 1-2 sentence description shown on overview cards" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Story Briefing & Investigation Details (Markdown Supported)</label>
+                    <textarea name="story_markdown" class="form-control font-mono" rows="6" placeholder="### Mission Dossier&#10;Analyze the target and retrieve the flag." required></textarea>
+                </div>
+
+                <div class="grid grid-2 gap-3 mb-3">
+                    <div class="form-group">
+                        <label>Initial Flag String (Optional)</label>
+                        <input type="text" name="initial_flag" class="form-control font-mono" placeholder="CTF{...}">
+                    </div>
+                    <div class="form-group">
+                        <label>Flag Title</label>
+                        <input type="text" name="flag_title" class="form-control" value="Authentic Flag">
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label><input type="checkbox" name="is_active" checked> Activate challenge immediately</label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-cyan font-bold"><i class="fas fa-save"></i> Save Challenge</button>
+                    <button type="button" class="btn btn-ghost" onclick="toggleElement('createChallengeForm')">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        {% if challenges %}
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Challenge Name</th>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Points</th>
+                            <th>Flags</th>
+                            <th>Status</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in challenges %}
+                            <tr>
+                                <td class="font-mono text-muted">#{{ c.display_order }}</td>
+                                <td><strong>{{ c.name }}</strong> <small class="text-muted font-mono">({{ c.slug }})</small></td>
+                                <td><span class="badge-pill bg-dark">{{ c.category }}</span></td>
+                                <td>{{ c.difficulty }}</td>
+                                <td class="font-bold text-cyan">{{ c.points }} PTS</td>
+                                <td>
+                                    <span class="badge-pill bg-dark">{{ c.flags|length }} Flag(s)</span>
+                                </td>
+                                <td>
+                                    {% if c.is_active %}
+                                        <span class="badge-status badge-success"><i class="fas fa-circle-check"></i> ACTIVE</span>
+                                    {% else %}
+                                        <span class="badge-status badge-danger"><i class="fas fa-circle-xmark"></i> DISABLED</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <div class="d-flex justify-end gap-1" style="justify-content: flex-end;">
+                                        <button class="btn btn-sm btn-outline-cyan" onclick="toggleElement('manageModal{{ c.id }}')">
+                                            <i class="fas fa-key"></i> Flags & Hints
+                                        </button>
+                                        <form action="{{ url_for('admin_toggle_challenge', challenge_id=c.id) }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm {% if c.is_active %}btn-danger-ghost{% else %}btn-cyan{% endif %}">
+                                                {% if c.is_active %}Deactivate{% else %}Activate{% endif %}
+                                            </button>
+                                        </form>
+                                        <form action="{{ url_for('admin_delete_challenge', challenge_id=c.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('DELETE challenge {{ c.name }} and all flags/hints?');">
+                                            <button type="submit" class="btn btn-sm btn-danger-ghost" style="color: #f87171;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Sub-Panel: Flags & Hints Management for Challenge -->
+                            <tr id="manageModal{{ c.id }}" style="display: none; background: rgba(0, 0, 0, 0.4);">
+                                <td colspan="8" style="padding: 16px;">
+                                    <div class="p-3" style="border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 6px;">
+                                        <div class="grid grid-2 gap-4">
+                                            <!-- Flags Management -->
+                                            <div>
+                                                <h5 class="text-cyan mb-2"><i class="fas fa-flag"></i> Flags for {{ c.name }}</h5>
+                                                {% if c.flags %}
+                                                    <ul class="mb-3" style="list-style: none; padding: 0;">
+                                                        {% for f in c.flags %}
+                                                            <li class="d-flex justify-between align-center p-2 mb-1" style="background: rgba(15, 23, 42, 0.8); border-radius: 4px;">
+                                                                <div>
+                                                                    <strong>{{ f.title }}</strong>: <code>{{ f.flag_value }}</code> ({{ f.points }} pts)
+                                                                </div>
+                                                                <form action="{{ url_for('admin_delete_flag', flag_id=f.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this flag?');">
+                                                                    <button type="submit" class="btn btn-sm btn-danger-ghost" style="padding: 2px 6px; font-size: 0.75rem;">&times;</button>
+                                                                </form>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-muted small">No flags configured yet.</p>
+                                                {% endif %}
+
+                                                <!-- Add Flag Form -->
+                                                <form action="{{ url_for('admin_add_flag', challenge_id=c.id) }}" method="POST" class="d-flex gap-2">
+                                                    <input type="text" name="flag_value" class="form-control form-control-sm font-mono" placeholder="CTF{...}" required>
+                                                    <input type="number" name="points" class="form-control form-control-sm" value="100" style="width: 80px;" required>
+                                                    <button type="submit" class="btn btn-sm btn-cyan text-nowrap"><i class="fas fa-plus"></i> Add Flag</button>
+                                                </form>
+                                            </div>
+
+                                            <!-- Hints Management -->
+                                            <div>
+                                                <h5 class="text-cyan mb-2"><i class="fas fa-lightbulb"></i> Clues / Hints for {{ c.name }}</h5>
+                                                {% if c.hints %}
+                                                    <ul class="mb-3" style="list-style: none; padding: 0;">
+                                                        {% for h in c.hints %}
+                                                            <li class="d-flex justify-between align-center p-2 mb-1" style="background: rgba(15, 23, 42, 0.8); border-radius: 4px;">
+                                                                <div>
+                                                                    <strong>#{{ h.hint_number }} {{ h.title }}</strong> (Penalty: {{ h.penalty }} pts)
+                                                                </div>
+                                                                <form action="{{ url_for('admin_delete_hint', hint_id=h.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this hint?');">
+                                                                    <button type="submit" class="btn btn-sm btn-danger-ghost" style="padding: 2px 6px; font-size: 0.75rem;">&times;</button>
+                                                                </form>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <p class="text-muted small">No hints configured yet.</p>
+                                                {% endif %}
+
+                                                <!-- Add Hint Form -->
+                                                <form action="{{ url_for('admin_add_hint', challenge_id=c.id) }}" method="POST">
+                                                    <div class="d-flex gap-2 mb-2">
+                                                        <input type="text" name="title" class="form-control form-control-sm" placeholder="Clue Title" required>
+                                                        <input type="number" name="penalty" class="form-control form-control-sm" value="15" style="width: 90px;" title="Penalty Points">
+                                                    </div>
+                                                    <textarea name="content" class="form-control form-control-sm mb-2" rows="2" placeholder="Hint text or riddle assistance" required></textarea>
+                                                    <button type="submit" class="btn btn-sm btn-cyan"><i class="fas fa-plus"></i> Add Clue</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-4 text-center">
+                <i class="fas fa-flag fa-2x text-muted mb-2"></i>
+                <p class="text-muted">No challenge missions exist in the database. Click <strong>Create New Challenge</strong> above to deploy your first mission!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Approved Participants Management -->
+    <div class="cyber-card mb-4">
+        <div class="card-title-bar d-flex justify-between align-center">
+            <h3><i class="fas fa-users-gear accent-cyan"></i> APPROVED PARTICIPANTS ROSTER</h3>
+            <span class="text-muted small">{{ approved_users|length }} Active Accounts</span>
+        </div>
+        {% if approved_users %}
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email Address</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Flags</th>
+                            <th>Enrolled</th>
+                            <th class="text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in approved_users %}
+                            <tr>
+                                <td><strong>{{ u.name }}</strong></td>
+                                <td class="font-mono text-muted">{{ u.email }}</td>
+                                <td>
+                                    {% if u.role == 'admin' %}
+                                        <span class="badge-status badge-danger font-mono" style="font-size: 0.78rem; padding: 3px 8px;"><i class="fas fa-shield-halved"></i> ADMIN</span>
+                                    {% else %}
+                                        <span class="badge-status badge-info font-mono" style="font-size: 0.78rem; padding: 3px 8px;"><i class="fas fa-user-ninja"></i> PLAYER</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge-status badge-success"><i class="fas fa-check-circle"></i> Active</span></td>
+                                <td class="font-mono font-bold text-cyan">{{ u.score }} PTS</td>
+                                <td class="font-mono">{{ u.flags_captured_count }} / {{ total_flags_count }}</td>
+                                <td class="font-mono small text-muted">{{ u.created_at|ist('%Y-%m-%d') }}</td>
+                                <td class="text-right">
+                                    <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('PERMANENTLY DELETE profile for {{ u.name }} ({{ u.email }})?');">
+                                        <button type="submit" class="btn btn-sm btn-danger-ghost" style="font-size: 0.75rem; padding: 4px 10px; color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+                                            <i class="fas fa-trash-can"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-4 text-center"><p class="text-muted">No approved participants on the roster yet.</p></div>
+        {% endif %}
+    </div>
+
+    <!-- Live Telemetry Stream -->
+    <div class="cyber-card">
+        <div class="card-title-bar">
+            <h4><i class="fas fa-terminal accent-cyan"></i> LIVE ATTEMPTS TELEMETRY</h4>
+        </div>
+        {% if recent_submissions %}
+            <div class="table-responsive">
+                <table class="cyber-table small font-mono">
+                    <thead>
+                        <tr>
+                            <th>User Email</th>
+                            <th>Challenge</th>
+                            <th>Submitted Value</th>
+                            <th>Verdict</th>
+                            <th>Origin IP</th>
+                            <th>Time (IST)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in recent_submissions %}
+                            <tr>
+                                <td>{{ s.user.email if s.user else 'Unknown' }}</td>
+                                <td>{{ s.challenge.name if s.challenge else 'Unknown' }}</td>
+                                <td class="text-muted">{{ s.submitted_flag[:18] }}...</td>
+                                <td>
+                                    {% if s.is_correct %}
+                                        <span class="text-success font-bold"><i class="fas fa-check"></i> +{{ s.points_awarded }}</span>
+                                    {% else %}
+                                        <span class="text-danger"><i class="fas fa-xmark"></i> FAIL</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted">{{ s.ip_address }}</td>
+                                <td class="text-muted font-mono small">{{ s.submitted_at|ist('%Y-%m-%d %I:%M:%S %p') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-4 text-center"><p class="text-muted">No flag submission telemetry recorded yet.</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleElement(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+}
+</script>
+{% endblock %}

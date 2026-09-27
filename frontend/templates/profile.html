@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header text-left mb-4">
+        <span class="section-subtitle">OPERATIVE DOSSIER</span>
+        <h1 class="section-title">USER <span class="accent-cyan">PROFILE</span></h1>
+    </div>
+
+    <div class="grid grid-3-sidebar">
+        <!-- Main Column: Solved Flags & History -->
+        <div class="story-main">
+            <!-- Solved Objectives Cabinet -->
+            <div class="cyber-card mb-4">
+                <div class="card-title-bar">
+                    <h3><i class="fas fa-trophy accent-cyan"></i> CAPTURED OBJECTIVES</h3>
+                    <span class="badge-pill bg-dark font-mono text-cyan">{{ user.flags_captured_count }} Solved</span>
+                </div>
+
+                {% if user_solves %}
+                    <div class="table-responsive">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Mission Track</th>
+                                    <th>Flag Objective</th>
+                                    <th>Points</th>
+                                    <th>Captured At (IST)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in user_solves %}
+                                    <tr>
+                                        <td><strong>{{ s.challenge.name }}</strong></td>
+                                        <td>
+                                            {% if s.flag_id %}
+                                                {% for f in s.challenge.flags if f.id == s.flag_id %}
+                                                    <span class="text-cyan">{{ f.title }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span>Authentic Flag</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="text-emerald font-bold font-mono">+{{ s.points_awarded }}</span></td>
+                                        <td class="font-mono small text-muted">{{ s.submitted_at|ist('%Y-%m-%d %I:%M:%S %p') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state py-4 text-center">
+                        <i class="fas fa-flag fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No flags captured yet. Start solving missions to fill your trophy cabinet!</p>
+                        <a href="{{ url_for('challenges') }}" class="btn btn-outline-cyan btn-sm mt-2">Go to Challenges</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Password Change Form -->
+            <div class="cyber-card">
+                <div class="card-title-bar">
+                    <h3><i class="fas fa-shield-halved accent-cyan"></i> ACCOUNT SECURITY</h3>
+                </div>
+                <form action="{{ url_for('profile') }}" method="POST" class="cyber-form">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-group mb-3">
+                        <label for="old_password">Current Passphrase</label>
+                        <input type="password" id="old_password" name="old_password" class="form-control" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="new_password">New Passphrase (Min 8 chars)</label>
+                        <input type="password" id="new_password" name="new_password" class="form-control" minlength="8" required>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="confirm_password">Confirm New Passphrase</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" minlength="8" required>
+                    </div>
+                    <button type="submit" class="btn btn-cyan">
+                        <i class="fas fa-lock"></i> Update Passphrase
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar: Account Summary -->
+        <div class="story-sidebar">
+            <div class="cyber-card text-center mb-4">
+                <div class="profile-avatar mb-3">
+                    <i class="fas fa-user-secret fa-3x accent-cyan"></i>
+                </div>
+                <h3 class="mb-1 text-white">{{ user.name }}</h3>
+                <p class="font-mono text-cyan small mb-3">Alias: {{ user.display_name }}</p>
+                <div class="card-divider mb-3"></div>
+
+                <div class="profile-details text-left small">
+                    <div class="detail-row mb-2">
+                        <span class="text-muted">Email:</span>
+                        <span class="font-mono text-white">{{ user.email }}</span>
+                    </div>
+                    <div class="detail-row mb-2">
+                        <span class="text-muted">Account Role:</span>
+                        <span class="badge-role">{{ user.role|upper }}</span>
+                    </div>
+                    <div class="detail-row mb-2">
+                        <span class="text-muted">Account Status:</span>
+                        <span class="text-success"><i class="fas fa-check-circle"></i> Active</span>
+                    </div>
+                    <div class="detail-row mb-2">
+                        <span class="text-muted">Enrolled Since:</span>
+                        <span>{{ user.created_at|ist('%Y-%m-%d') }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="text-muted">Total Score:</span>
+                        <span class="text-emerald font-bold font-mono">{{ user.score }} PTS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

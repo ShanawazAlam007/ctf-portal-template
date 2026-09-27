@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ code or '404' }} | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="cyber-card py-5 my-5" style="max-width: 600px; margin: 0 auto;">
+        <div class="mb-4">
+            <span class="font-mono text-danger" style="font-size: 5rem; font-weight: 800; text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);">
+                {{ code or '404' }}
+            </span>
+        </div>
+        <h2 class="text-white mb-2">TELEMETRY ANOMALY</h2>
+        <p class="text-muted mb-4">{{ message or 'The requested page or target resource could not be found.' }}</p>
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-cyan">
+                <i class="fas fa-home"></i> Return to Safety
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

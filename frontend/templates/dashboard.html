@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Player Hero Header -->
+    <div class="dashboard-header cyber-card mb-4">
+        <div class="dashboard-user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user-secret fa-2x"></i>
+            </div>
+            <div>
+                <h1 class="dashboard-name">{{ user.name }}</h1>
+                <div class="dashboard-meta">
+                    <span><i class="fas fa-shield"></i> {{ user.email }}</span>
+                    <span><i class="fas fa-tag"></i> Public Alias: <strong>{{ user.display_name }}</strong></span>
+                    <span class="badge-role">{{ user.role|upper }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-stats-strip">
+            <div class="dash-stat">
+                <div class="stat-value text-cyan">{{ user.score }}</div>
+                <div class="stat-title">Total Points</div>
+            </div>
+            <div class="dash-stat">
+                <div class="stat-value text-emerald">#{{ user_rank }}</div>
+                <div class="stat-title">Arena Rank</div>
+            </div>
+            <div class="dash-stat">
+                <div class="stat-value text-amber">{{ user.flags_captured_count }} / {{ total_flags_count }}</div>
+                <div class="stat-title">Flags Captured</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Challenge Missions Status -->
+    <div class="section-title-wrap mb-3">
+        <h3><i class="fas fa-crosshairs accent-cyan"></i> ACTIVE MISSIONS</h3>
+        <p class="text-muted">Target environments deployed in isolated lab infrastructure. Select an unlocked track to view mission briefings and submit flags.</p>
+    </div>
+
+    {% if challenge_status %}
+        <div class="grid grid-2 mb-5">
+            {% for cs in challenge_status %}
+                <div class="cyber-card track-card {% if cs.is_completed %}card-completed{% elif not cs.is_unlocked %}card-locked{% endif %}">
+                    <div class="card-header-track">
+                        <span class="track-badge {% if not cs.is_unlocked %}locked{% elif cs.challenge.target_type == 'RDP' %}win{% elif cs.challenge.target_type == 'HTTP' %}web{% else %}linux{% endif %}">
+                            <i class="{% if not cs.is_unlocked %}fas fa-lock{% elif cs.challenge.target_type == 'RDP' %}fab fa-windows{% elif cs.challenge.target_type == 'HTTP' %}fas fa-globe{% else %}fab fa-linux{% endif %}"></i>
+                            {% if not cs.is_unlocked %}STAGE LOCKED{% else %}{{ cs.challenge.category }}{% endif %}
+                        </span>
+                        <span class="track-points">{{ cs.challenge.points }} PTS</span>
+                    </div>
+                    
+                    <h3 class="track-title mt-2">
+                        {% if not cs.is_unlocked %}
+                            <i class="fas fa-lock text-amber mr-1"></i> Stage {{ cs.challenge.display_order }}: {{ cs.challenge.name }}
+                        {% else %}
+                            Stage {{ cs.challenge.display_order }}: {{ cs.challenge.name }}
+                        {% endif %}
+                    </h3>
+                    <p class="track-desc">{{ cs.challenge.short_desc }}</p>
+
+                    <div class="track-meta">
+                        {% if not cs.is_unlocked %}
+                            <div><i class="fas fa-shield-alt text-amber"></i> Status: <strong class="text-amber">Locked &mdash; Stage {{ cs.required_stage }} Required</strong></div>
+                            <div><i class="fas fa-layer-group"></i> Category: <span class="text-cyan">{{ cs.challenge.category }}</span></div>
+                            <div><i class="fas fa-gauge"></i> Difficulty: <span class="text-cyan">{{ cs.challenge.difficulty }}</span></div>
+                        {% else %}
+                            <div><i class="fas fa-layer-group"></i> Category: <span class="text-cyan">{{ cs.challenge.category }}</span></div>
+                            <div><i class="fas fa-gauge"></i> Difficulty: <span class="text-cyan">{{ cs.challenge.difficulty }}</span></div>
+                            <div>
+                                <i class="fas fa-flag-checkered"></i> Progress: 
+                                <strong class="{% if cs.is_completed %}text-success{% else %}text-cyan{% endif %}">
+                                    {{ cs.solved_count }} / {{ cs.total_flags }} Flags
+                                </strong>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="track-footer mt-3">
+                        {% if not cs.is_unlocked %}
+                            <button class="btn btn-sm btn-locked w-100" disabled>
+                                <i class="fas fa-lock"></i> Locked &mdash; Complete Stage {{ cs.required_stage }} First
+                            </button>
+                        {% else %}
+                            <a href="{{ url_for('challenge_detail', slug=cs.challenge.slug) }}" class="btn btn-sm {% if cs.is_completed %}btn-outline-success{% else %}btn-cyan{% endif %} w-100">
+                                {% if cs.is_completed %}
+                                    <i class="fas fa-check-circle"></i> Mission Solved (Review)
+                                {% else %}
+                                    <i class="fas fa-terminal"></i> Enter Mission &rarr;
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state py-5 text-center cyber-card mb-5">
+            <i class="fas fa-flag fa-3x text-muted mb-3"></i>
+            <h3>No Missions Deployed Yet</h3>
+            <p class="text-muted">The tournament organizers have not published challenge missions yet. Check back soon!</p>
+        </div>
+    {% endif %}
+
+    <!-- Submission History -->
+    <div class="cyber-card">
+        <div class="card-title-bar">
+            <h3><i class="fas fa-clock-rotate-left accent-cyan"></i> YOUR RECENT SUBMISSION LOG</h3>
+            <span class="text-muted small">Anti-bruteforce rate limiting active</span>
+        </div>
+
+        {% if recent_subs %}
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Time (IST)</th>
+                            <th>Challenge</th>
+                            <th>Submitted Value</th>
+                            <th>Status</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in recent_subs %}
+                            <tr>
+                                <td class="text-muted small font-mono">{{ sub.submitted_at|ist('%Y-%m-%d %I:%M:%S %p') }}</td>
+                                <td><strong>{{ sub.challenge.name }}</strong></td>
+                                <td class="font-mono text-muted">
+                                    {% if sub.is_correct %}
+                                        <span class="text-cyan">{{ sub.submitted_flag }}</span>
+                                    {% else %}
+                                        <span>{{ sub.submitted_flag[:18] }}...</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if sub.is_correct %}
+                                        <span class="badge-status badge-success"><i class="fas fa-check"></i> CORRECT</span>
+                                    {% else %}
+                                        <span class="badge-status badge-danger"><i class="fas fa-xmark"></i> INCORRECT</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if sub.points_awarded > 0 %}
+                                        <span class="text-emerald font-bold">+{{ sub.points_awarded }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-4 text-center">
+                <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                <p class="text-muted">No flag submissions recorded yet. Choose a challenge above to begin your investigation!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{
+  "eventName": "CYBER ARENA CTF",
+  "eventSubtitle": "Think. Enumerate. Exploit. Capture.",
+  "organization": "Security Operations & Research Lab",
+  "contactEmail": "admin@example.com",
+  "registrationEnabled": true,
+  "leaderboardEnabled": true,
+  "allowedEmailDomains": [],
+  "requireNumericRoll": false,
+  "requireAdminApproval": true,
+  "sequentialStages": true,
+  "rateLimitWarning": "Automated security interception: High-frequency requests detected. Your IP has been temporarily rate-limited.",
+  "timezone": "Asia/Kolkata",
+  "timeFormat": "%Y-%m-%d %I:%M:%S %p",
+  "startTime": null,
+  "endTime": null
+}

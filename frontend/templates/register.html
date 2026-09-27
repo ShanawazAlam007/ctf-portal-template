@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Register | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-container">
+        <div class="cyber-card auth-card animate-slide-in">
+            <div class="auth-header">
+                <div class="auth-icon"><i class="fas fa-id-card"></i></div>
+                <h2 class="auth-title">OPERATIVE ENROLLMENT</h2>
+                <p class="auth-subtitle">{{ event.eventName }} &bull; {{ event.organization }}</p>
+            </div>
+
+            {% if event.allowedEmailDomains %}
+            <div class="alert alert-info mb-4">
+                <div class="alert-icon"><i class="fas fa-shield"></i></div>
+                <div class="alert-content">
+                    <strong>Eligibility Requirement:</strong> Registration is restricted to authorized email domains: <code>@{{ event.allowedEmailDomains|join(', @') }}</code>.
+                </div>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('register') }}" method="POST" class="cyber-form">
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user"></i> Full Legal / Operative Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        class="form-control" 
+                        placeholder="e.g. Alex Hunter" 
+                        value="{{ name or '' }}" 
+                        required 
+                        autofocus
+                    >
+                    <small class="form-hint">Displayed on the public leaderboard in privacy-safe format (e.g. Alex H.).</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-control font-mono" 
+                        placeholder="operative@example.com" 
+                        value="{{ email or '' }}" 
+                        required
+                    >
+                    {% if event.allowedEmailDomains %}
+                        <small class="form-hint">Must be registered with an authorized domain (<code>@{{ event.allowedEmailDomains|join(', @') }}</code>).</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="role"><i class="fas fa-user-gear"></i> Account Role</label>
+                    <select id="role" name="role" class="form-control" style="background-color: var(--bg-card); color: #fff; border: 1px solid var(--border-color); cursor: pointer;" required>
+                        <option value="player" {% if not role or role == 'player' %}selected{% endif %}>Player (CTF Competitor)</option>
+                        <option value="admin" {% if role == 'admin' %}selected{% endif %}>Admin (Co-Organizer)</option>
+                    </select>
+                    <small class="form-hint">Select "Player" to compete on the leaderboard or "Admin" for organizer privileges.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Account Passphrase</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-control" 
+                        placeholder="Minimum 8 characters" 
+                        minlength="8" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password"><i class="fas fa-lock-open"></i> Confirm Passphrase</label>
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        class="form-control" 
+                        placeholder="Re-enter passphrase" 
+                        minlength="8" 
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-cyan btn-block mt-4">
+                    <i class="fas fa-user-plus"></i> Complete Enrollment
+                </button>
+            </form>
+
+            <div class="auth-footer mt-4">
+                <p>Already registered? <a href="{{ url_for('login') }}" class="link-cyan">Log in here &rarr;</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

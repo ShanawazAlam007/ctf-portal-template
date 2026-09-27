@@ -1,0 +1,40 @@
+# Environment & Secrets
+.env
+*.env
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Database & Runtime Data
+*.sqlite3
+*.db
+/dev/shm/ctf_ratelimit.db*
+backups/
+*.sql
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+logs/
+/var/log/
+
+# IDE & OS Metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

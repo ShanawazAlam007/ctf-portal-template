@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header text-left mb-4">
+        <div class="d-flex justify-between align-center flex-wrap">
+            <div>
+                <span class="section-subtitle">LIVE STANDINGS</span>
+                <h1 class="section-title">THE ARENA <span class="accent-cyan">HALL OF FAME</span></h1>
+                <p class="section-desc">Scores update immediately upon valid flag verification. Ties broken by earliest solve time.</p>
+            </div>
+            <div class="header-action-tools mt-3">
+                <button class="btn btn-outline-cyan btn-sm" onclick="location.reload();">
+                    <i class="fas fa-rotate"></i> Refresh Standings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Table Card -->
+    <div class="cyber-card">
+        {% if leaderboard %}
+            <div class="table-responsive">
+                <table class="cyber-table leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Rank</th>
+                            <th>Operative Alias</th>
+                            <th class="text-center" style="width: 140px;">Flags Captured</th>
+                            <th class="text-center" style="width: 200px;">Last Blood (IST)</th>
+                            <th class="text-right" style="width: 160px;">Total Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in leaderboard %}
+                            <tr class="{% if current_user and current_user.id == p.id %}current-user-row{% endif %}">
+                                <td>
+                                    {% if p.rank == 1 %}
+                                        <div class="rank-badge gold"><i class="fas fa-crown"></i> 1</div>
+                                    {% elif p.rank == 2 %}
+                                        <div class="rank-badge silver"><i class="fas fa-medal"></i> 2</div>
+                                    {% elif p.rank == 3 %}
+                                        <div class="rank-badge bronze"><i class="fas fa-award"></i> 3</div>
+                                    {% else %}
+                                        <div class="rank-badge default">{{ p.rank }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="player-alias font-mono">
+                                        <i class="fas fa-user-ninja accent-cyan mr-1"></i>
+                                        <strong>{{ p.display_name }}</strong>
+                                        {% if current_user and current_user.id == p.id %}
+                                            <span class="badge-pill bg-cyan ml-2">YOU</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge-pill bg-dark font-mono">{{ p.flags_count }} / {{ total_flags_count or 0 }}</span>
+                                </td>
+                                <td class="text-center font-mono small text-muted">
+                                    {% if p.last_solve %}
+                                        {{ p.last_solve|ist('%b %d, %I:%M:%S %p') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <span class="score-pill font-mono">{{ p.score }} <small>PTS</small></span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state py-5 text-center">
+                <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                <h3>No Operatives on the Board Yet</h3>
+                <p class="text-muted">Standings will update dynamically once the first challenge flag is captured!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

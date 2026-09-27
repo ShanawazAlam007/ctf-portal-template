@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Rules of Engagement | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="section-header text-left mb-4">
+        <span class="section-subtitle">TOURNAMENT DIRECTIVES</span>
+        <h1 class="section-title">RULES OF <span class="accent-cyan">ENGAGEMENT</span></h1>
+        <p class="section-desc">Strict compliance with these rules is mandatory for all participating competitors. Violations will result in disqualification.</p>
+    </div>
+
+    <div class="grid grid-2 mb-4">
+        <!-- Permitted Actions -->
+        <div class="cyber-card">
+            <div class="card-title-bar">
+                <h3 class="text-success"><i class="fas fa-check-circle"></i> PERMITTED ACTIONS</h3>
+            </div>
+            <ul class="rules-list-detailed">
+                <li>
+                    <strong>Target Reconnaissance:</strong> Active and passive port scanning, banner grabbing, and service enumeration strictly against designated challenge targets assigned in your mission briefs once authenticated.
+                </li>
+                <li>
+                    <strong>Security Tooling:</strong> Use of standard penetration testing utilities including Nmap, Burp Suite, Gobuster, FFuf, SQLMap, curl, Python, Netcat, and CyberChef.
+                </li>
+                <li>
+                    <strong>Service Exploitation:</strong> Discovering weaknesses, bypassing application filters, and elevating privileges strictly within designated challenge environments.
+                </li>
+                <li>
+                    <strong>Legitimate Post-Exploitation:</strong> Reading configuration files, decoding historical archives, and retrieving authentic challenge flags.
+                </li>
+            </ul>
+        </div>
+
+        <!-- Strictly Prohibited Actions -->
+        <div class="cyber-card">
+            <div class="card-title-bar">
+                <h3 class="text-danger"><i class="fas fa-ban"></i> STRICTLY PROHIBITED</h3>
+            </div>
+            <ul class="rules-list-detailed">
+                <li>
+                    <strong>No Attacks on Portal Infrastructure:</strong> Do NOT attack, scan, or fuzz the CTF portal web server, scoring engine, or database hosting this platform. The portal is an administrative management system, not a challenge target.
+                </li>
+                <li>
+                    <strong>No Denial of Service:</strong> Do NOT launch volumetric floods (SYN floods, UDP storms, massive parallel HTTP fuzzers) that degrade service for fellow participants.
+                </li>
+                <li>
+                    <strong>No Destructive Commands:</strong> Never alter system configurations or lock other participants out of challenge environments.
+                </li>
+                <li>
+                    <strong>No Hypervisor / Cloud Escapes:</strong> Do NOT attempt to contact cloud Instance Metadata Services (IMDS) or compromise the underlying host virtualization infrastructure.
+                </li>
+                <li>
+                    <strong>No Flag Sharing / Collusion:</strong> Submitting flags discovered by other competitors or publishing solutions online during the active competition is strictly prohibited.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Flag Format & Scoring -->
+    <div class="cyber-card">
+        <div class="card-title-bar">
+            <h3><i class="fas fa-flag accent-cyan"></i> FLAG SUBMISSION & TIE-BREAKING</h3>
+        </div>
+        <div class="p-3">
+            <p><strong>Flag Structure:</strong> Flags follow the standard canonical format: <code>CTF{...}</code> unless otherwise specified in the briefing.</p>
+            <p><strong>Tie-Breaking Mechanism:</strong> If multiple competitors achieve the same score, the competitor who reached that score first is ranked higher on the live leaderboard.</p>
+            <p><strong>Hint Penalties:</strong> First clue for each challenge is free. Additional clues carry score point deductions. Competitors cannot unlock clues if their score balance is insufficient.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

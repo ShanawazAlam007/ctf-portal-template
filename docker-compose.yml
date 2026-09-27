@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ctf_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ctf_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ctf_db}
+    volumes:
+      - ctf_postgres_data:/var/lib/postgresql/data
+    networks:
+      - ctf-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ctf_admin} -d ${POSTGRES_DB:-ctf_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  portal_web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ctf_web
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - ./config:/app/config
+      - ctf_logs:/var/log/ctf-portal
+      - ./backups:/app/backups
+    networks:
+      - ctf-internal
+    expose:
+      - "5000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: ctf_nginx
+    restart: always
+    depends_on:
+      - portal_web
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/static:/app/frontend/static:ro
+    networks:
+      - ctf-internal
+
+volumes:
+  ctf_postgres_data:
+    driver: local
+  ctf_logs:
+    driver: local
+
+networks:
+  ctf-internal:
+    driver: bridge

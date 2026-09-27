@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Login | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-container">
+        <div class="cyber-card auth-card animate-slide-in">
+            <div class="auth-header">
+                <div class="auth-icon"><i class="fas fa-key"></i></div>
+                <h2 class="auth-title">OPERATIVE AUTHENTICATION</h2>
+                <p class="auth-subtitle">{{ event.eventName }} — Authenticate to access mission briefings</p>
+            </div>
+
+            {% if brute_force_warning %}
+            <div class="brute-force-banner animate-slide-in mb-4">
+                <div class="bf-header">
+                    <i class="fas fa-shield-virus bf-icon"></i>
+                    <span>SECURITY INTERCEPTION &bull; RATE LIMIT DETECTED</span>
+                </div>
+                <div class="bf-message">
+                    &ldquo;{{ event.rateLimitWarning or 'Automated high-frequency requests detected. Your IP has been temporarily rate-limited.' }}&rdquo;
+                </div>
+                <div class="bf-meta">
+                    <span><i class="fas fa-satellite-dish"></i> TRACKED IP: <code>{{ client_ip }}</code></span>
+                    {% if attempted_target %}
+                    <span><i class="fas fa-crosshairs"></i> TARGET: <code>{{ attempted_target }}</code></span>
+                    {% endif %}
+                    <span><i class="fas fa-triangle-exclamation text-rose"></i> STATUS: <strong class="text-rose">RATE-LIMITED</strong></span>
+                </div>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('login', next=request.args.get('next')) }}" method="POST" class="cyber-form">
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-control" 
+                        placeholder="operative@example.com" 
+                        value="{{ email or '' }}" 
+                        required 
+                        autofocus
+                    >
+                    {% if event.allowedEmailDomains %}
+                        <small class="form-hint">Authorized domains: <code>@{{ event.allowedEmailDomains|join(', @') }}</code></small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Passphrase</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-control" 
+                        placeholder="••••••••••••" 
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-cyan btn-block mt-4">
+                    <i class="fas fa-arrow-right-to-bracket"></i> Authenticate & Enter Arena
+                </button>
+            </form>
+
+            {% if event.registrationEnabled %}
+                <div class="auth-footer mt-4">
+                    <p>New operative? <a href="{{ url_for('register') }}" class="link-cyan">Enroll your account &rarr;</a></p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

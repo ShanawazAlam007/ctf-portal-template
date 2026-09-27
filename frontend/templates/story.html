@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.name }} | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar mb-3">
+        <a href="{{ url_for('challenges') }}" class="link-cyan">&larr; Back to Challenges</a>
+        <span class="text-muted">/</span>
+        <span class="text-white">{{ challenge.name }}</span>
+    </div>
+
+    <div class="grid grid-3-sidebar">
+        <!-- Main Column: Story & Intelligence Briefing -->
+        <div class="story-main">
+            <div class="cyber-card mb-4">
+                <div class="story-header mb-3">
+                    <div class="d-flex justify-between align-center mb-2">
+                        <span class="track-badge {% if challenge.target_type == 'RDP' %}win{% elif challenge.target_type == 'HTTP' %}web{% else %}linux{% endif %}">
+                            {{ challenge.category }}
+                        </span>
+                        <span class="badge-difficulty">{{ challenge.difficulty }}</span>
+                    </div>
+                    <h1 class="story-title">{{ challenge.name }}</h1>
+                    <p class="story-desc text-muted">{{ challenge.short_desc }}</p>
+                </div>
+
+                <div class="card-divider my-3"></div>
+
+                <!-- Markdown Story Content -->
+                <div class="story-markdown-body">
+                    {{ challenge.story_markdown|md|safe }}
+                </div>
+            </div>
+
+            <!-- Clues & Hints Card -->
+            {% if hints_info %}
+            <div class="cyber-card mb-4" style="border: 1px solid rgba(6, 182, 212, 0.35); background: linear-gradient(180deg, rgba(6, 182, 212, 0.04) 0%, var(--bg-card) 100%);">
+                <div class="card-title-bar d-flex justify-between align-center">
+                    <h4><i class="fas fa-lightbulb accent-cyan"></i> TACTICAL CLUES & RIDDLE HINTS</h4>
+                    <span class="badge-pill bg-dark font-mono text-muted small">
+                        {% set unlocked_total = hints_info|selectattr('is_unlocked')|list|length %}
+                        {{ unlocked_total }} / {{ hints_info|length }} Unlocked
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-circle-info accent-cyan"></i> <strong>Clue Policy:</strong>
+                    First clue unlocked for this mission is completely <strong class="text-emerald">FREE (0 pts)</strong>. Additional clues require at least <strong class="text-amber">15 points</strong> to unlock.
+                </p>
+
+                <div class="hints-accordion">
+                    {% for h in hints_info %}
+                        <div class="hint-card mb-3" style="background: rgba(15, 23, 42, 0.7); border: 1px solid {% if h.is_unlocked %}rgba(16, 185, 129, 0.45){% else %}rgba(100, 116, 139, 0.3){% endif %}; border-radius: 6px; padding: 14px 18px;">
+                            <div class="d-flex justify-between align-center flex-wrap gap-2">
+                                <div>
+                                    <span class="badge-pill {% if h.is_unlocked %}bg-success{% else %}bg-dark{% endif %} font-mono mr-2">
+                                        CLUE #{{ h.number }}
+                                    </span>
+                                    <strong class="text-white">{{ h.title }}</strong>
+                                </div>
+                                <div>
+                                    {% if h.is_unlocked %}
+                                        <span class="badge-status badge-success"><i class="fas fa-lock-open"></i> UNLOCKED</span>
+                                    {% else %}
+                                        {% set unlocked_count = hints_info|selectattr('is_unlocked')|list|length %}
+                                        <form action="{{ url_for('unlock_hint', slug=challenge.slug, hint_id=h.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Unlock this clue? {% if unlocked_count == 0 %}This first clue is FREE (0 pts).{% else %}Cost: 15 PTS penalty.{% endif %}');">
+                                            <button type="submit" class="btn btn-sm btn-outline-cyan font-bold" style="padding: 4px 12px;">
+                                                <i class="fas fa-key"></i> Unlock Clue
+                                                {% if unlocked_count == 0 %}
+                                                    <span class="text-emerald">(FREE)</span>
+                                                {% else %}
+                                                    <span class="text-amber">(-15 PTS)</span>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if h.is_unlocked %}
+                                <div class="hint-content mt-3 pt-3" style="border-top: 1px dashed rgba(255,255,255,0.15);">
+                                    <div class="p-3 font-mono text-cyan" style="background: rgba(0,0,0,0.4); border-radius: 4px; font-size: 0.92rem; line-height: 1.6;">
+                                        {{ h.content|md|safe }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Mission Attempts Telemetry -->
+            {% if user_history %}
+                <div class="cyber-card">
+                    <div class="card-title-bar">
+                        <h4><i class="fas fa-history accent-cyan"></i> Your Attempts for this Mission</h4>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp (IST)</th>
+                                    <th>Submitted String</th>
+                                    <th>Verdict</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in user_history %}
+                                    <tr>
+                                        <td class="font-mono small text-muted">{{ h.submitted_at|ist('%Y-%m-%d %I:%M:%S %p') }}</td>
+                                        <td class="font-mono text-muted">
+                                            {% if h.is_correct %}
+                                                <span class="text-cyan">{{ h.submitted_flag }}</span>
+                                            {% else %}
+                                                <span>{{ h.submitted_flag[:18] }}...</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if h.is_correct %}
+                                                <span class="badge-status badge-success"><i class="fas fa-check"></i> CORRECT</span>
+                                            {% else %}
+                                                <span class="badge-status badge-danger"><i class="fas fa-xmark"></i> INCORRECT</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if h.points_awarded > 0 %}
+                                                <span class="text-emerald font-bold font-mono">+{{ h.points_awarded }}</span>
+                                            {% else %}
+                                                <span class="text-muted font-mono">0</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar Column: Connection & Flag Submission -->
+        <div class="story-sidebar">
+            <!-- Target Environment Access -->
+            {% if challenge.target_info %}
+            <div class="cyber-card mb-4">
+                <div class="card-title-bar">
+                    <h4><i class="fas fa-network-wired accent-cyan"></i> MISSION TARGET</h4>
+                </div>
+                <div class="target-box">
+                    <div class="target-field mb-2">
+                        <span class="text-muted small">Service Type:</span>
+                        <div class="font-mono text-white font-bold">{{ challenge.target_type }}</div>
+                    </div>
+                    <div class="target-field">
+                        <span class="text-muted small">Connection Target:</span>
+                        <div class="font-mono text-cyan" style="word-break: break-all;">
+                            <code>{{ challenge.target_info }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Objectives & Flags Progress -->
+            <div class="cyber-card mb-4">
+                <div class="card-title-bar">
+                    <h4><i class="fas fa-flag accent-cyan"></i> MISSION OBJECTIVES</h4>
+                </div>
+                <div class="flags-checklist">
+                    {% for f in flags_data %}
+                        <div class="flag-item {% if f.is_solved %}flag-solved{% endif %} mb-3">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <i class="fas {% if f.is_solved %}fa-circle-check text-success{% else %}fa-circle-dot text-muted{% endif %} mr-2"></i>
+                                    <strong>{{ f.title }}</strong>
+                                </div>
+                                <span class="badge-pill {% if f.is_solved %}bg-success{% else %}bg-dark{% endif %} font-mono">
+                                    {{ f.points }} PTS
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Flag Submission Card -->
+            <div class="cyber-card">
+                <div class="card-title-bar">
+                    <h4><i class="fas fa-key accent-cyan"></i> SUBMIT MISSION FLAG</h4>
+                </div>
+                <form action="{{ url_for('challenge_detail', slug=challenge.slug) }}" method="POST" class="cyber-form">
+                    <div class="form-group mb-3">
+                        <label for="flag">Flag String</label>
+                        <input 
+                            type="text" 
+                            id="flag" 
+                            name="flag" 
+                            class="form-control font-mono" 
+                            placeholder="CTF{...}" 
+                            required 
+                            autocomplete="off"
+                        >
+                        <small class="text-muted">Standard format: <code>CTF{...}</code></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-cyan btn-block">
+                        <i class="fas fa-paper-plane"></i> Verify Flag
+                    </button>
+                </form>
+                <div class="mt-3">
+                    <small class="text-muted"><i class="fas fa-shield"></i> Submissions are rate-limited to maintain competitive integrity.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Account Verified | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container auth-container">
+        <div class="cyber-card auth-card animate-slide-in text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-circle-check text-success" style="font-size: 3.5rem;"></i>
+            </div>
+
+            <h2 class="auth-title mb-2 text-success">ACCOUNT VERIFIED</h2>
+            <p class="auth-subtitle mb-4">Your operative mailbox has been verified successfully.</p>
+
+            <div class="alert alert-success text-left mb-4">
+                <div class="alert-icon"><i class="fas fa-user-shield"></i></div>
+                <div class="alert-content">
+                    <p class="mb-0">Welcome aboard, <strong>{{ user.name if user else 'Operative' }}</strong>. Your credentials are now active.</p>
+                </div>
+            </div>
+
+            <a href="{{ url_for('login') }}" class="btn btn-cyan btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Proceed to Login &rarr;
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

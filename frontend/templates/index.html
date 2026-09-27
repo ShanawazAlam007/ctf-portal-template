@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Home | {{ event.eventName }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container hero-container">
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span>{{ event.eventName }} &bull; {{ event.organization }}</span>
+        </div>
+        <h1 class="hero-title">
+            {{ event.eventName }}
+        </h1>
+        <p class="hero-tagline">
+            "{{ event.eventSubtitle }}"
+        </p>
+        <p class="hero-desc">
+            Welcome to {{ event.eventName }}. Step into hands-on cybersecurity missions, analyze forensics telemetry, exploit vulnerable services, and capture authentic flags in an isolated training arena.
+        </p>
+        <div class="hero-actions">
+            {% if current_user %}
+                <a href="{{ url_for('challenges') }}" class="btn btn-cyan btn-lg">
+                    <i class="fas fa-crosshairs"></i> ENTER CHALLENGES
+                </a>
+            {% else %}
+                {% if event.registrationEnabled %}
+                    <a href="{{ url_for('register') }}" class="btn btn-cyan btn-lg">
+                        <i class="fas fa-user-plus"></i> JOIN TOURNAMENT
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('login') }}" class="btn btn-ghost btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> OPERATIVE LOGIN
+                </a>
+            {% endif %}
+            <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-cyan btn-lg">
+                <i class="fas fa-trophy"></i> LEADERBOARD
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-num">{{ challenges|length }}</div>
+                <div class="stat-label">Active Missions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">{{ total_points }}</div>
+                <div class="stat-label">Total Points</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">{{ total_flags_count }}</div>
+                <div class="stat-label">Authentic Flags</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num font-mono" style="font-size: 1.15rem;">
+                    {% if event.allowedEmailDomains %}
+                        @{{ event.allowedEmailDomains|join(', @') }}
+                    {% else %}
+                        OPEN
+                    {% endif %}
+                </div>
+                <div class="stat-label">Access Scope</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Challenge Tracks Preview -->
+<section class="section tracks-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-subtitle">OPERATION ARCHITECTURE</span>
+            <h2 class="section-title">CHALLENGE <span class="accent-cyan">PORTFOLIO</span></h2>
+            <p class="section-desc">Missions run on dedicated, isolated infrastructure. Select an active track to begin your investigation.</p>
+        </div>
+
+        {% if challenges %}
+            <div class="grid grid-2">
+                {% for c in challenges %}
+                    <div class="cyber-card track-card">
+                        <div class="card-header-track">
+                            <span class="track-badge {% if c.target_type == 'RDP' %}win{% elif c.target_type == 'HTTP' %}web{% else %}linux{% endif %}">
+                                <i class="{% if c.target_type == 'RDP' %}fab fa-windows{% elif c.target_type == 'HTTP' %}fas fa-globe{% else %}fab fa-linux{% endif %}"></i>
+                                STAGE {{ c.display_order }}: {{ c.category }}
+                            </span>
+                            <span class="track-points">{{ c.points }} PTS</span>
+                        </div>
+                        <h3 class="track-title mt-2">{{ c.name }}</h3>
+                        <p class="track-desc">{{ c.short_desc }}</p>
+                        <div class="track-meta">
+                            <div><i class="fas fa-layer-group"></i> Category: <span class="text-cyan">{{ c.category }}</span></div>
+                            <div><i class="fas fa-gauge"></i> Difficulty: <span class="text-cyan">{{ c.difficulty }}</span></div>
+                        </div>
+                        <div class="track-footer mt-3">
+                            <a href="{{ url_for('challenge_detail', slug=c.slug) if current_user else url_for('login') }}" class="btn btn-sm btn-outline-cyan w-100">
+                                Start Mission &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state py-5 text-center cyber-card">
+                <i class="fas fa-flag fa-3x text-muted mb-3"></i>
+                <h3>No Missions Published Yet</h3>
+                <p class="text-muted">Challenge tracks will be unlocked when the competition begins. Register early to claim your handle!</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Leaderboard Preview & Tournament Directives -->
+<section class="section standings-rules-section">
+    <div class="container">
+        <div class="grid grid-2">
+            <!-- Leaderboard Preview -->
+            <div class="cyber-card">
+                <div class="card-title-bar">
+                    <h3><i class="fas fa-trophy accent-cyan"></i> TOP OPERATIVES</h3>
+                    <a href="{{ url_for('leaderboard') }}" class="link-cyan">View Full Standings &rarr;</a>
+                </div>
+                {% if leaderboard_preview %}
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Operative</th>
+                                <th>Flags</th>
+                                <th class="text-right">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in leaderboard_preview %}
+                                <tr>
+                                    <td>
+                                        {% if p.rank == 1 %}<span class="rank-crown gold"><i class="fas fa-crown"></i> 1</span>
+                                        {% elif p.rank == 2 %}<span class="rank-crown silver"><i class="fas fa-medal"></i> 2</span>
+                                        {% elif p.rank == 3 %}<span class="rank-crown bronze"><i class="fas fa-award"></i> 3</span>
+                                        {% else %}{{ p.rank }}{% endif %}
+                                    </td>
+                                    <td class="font-mono"><strong>{{ p.display_name }}</strong></td>
+                                    <td><span class="badge-pill">{{ p.flags_count }}</span></td>
+                                    <td class="text-right font-bold text-cyan">{{ p.score }} pts</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state py-4 text-center">
+                        <i class="fas fa-trophy fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No submissions verified yet. Be the first to claim First Blood!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Tournament Directives Summary -->
+            <div class="cyber-card">
+                <div class="card-title-bar">
+                    <h3><i class="fas fa-shield-alt accent-cyan"></i> TOURNAMENT DIRECTIVES</h3>
+                    <a href="{{ url_for('rules') }}" class="link-cyan">Full Rules &rarr;</a>
+                </div>
+                <ul class="rules-summary-list">
+                    <li><i class="fas fa-check text-success"></i> <strong>Individual Investigation:</strong> Every competitor operates independently under authorized lab rules.</li>
+                    <li><i class="fas fa-check text-success"></i> <strong>Real-World Targets:</strong> Analyze authentic services and logs deployed in isolated target environments.</li>
+                    <li><i class="fas fa-ban text-danger"></i> <strong>No Attacks on Platform:</strong> Fuzzing, attacking, or disrupting the CTF scoring portal is strictly prohibited.</li>
+                    <li><i class="fas fa-ban text-danger"></i> <strong>No Denial of Service:</strong> Mass flooding or destructive operations against targets will result in disqualification.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
